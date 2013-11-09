@@ -12,6 +12,18 @@ describe FiveCardHand do
   end
   let(:hand) { FiveCardHand.new(cards) }
 
+  context "#summary" do
+    it "groups the cards by the card number" do
+      expect(hand.summary).to eq []
+    end
+  end
+
+  context "#grouped_cards" do
+    it "groups the cards by the card number" do
+      expect(hand.grouped_cards).to eq []
+    end
+  end
+
   context "#pair" do
     it "returns true if there is a pair" do
       expect(hand.pair?).to be_true

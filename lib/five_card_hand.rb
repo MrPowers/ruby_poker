@@ -1,8 +1,57 @@
+require "pry"
 class FiveCardHand
   include Pair
   attr_reader :cards
   def initialize(cards)
     @cards = cards
+  end
+
+  def type
+    types.each do |t|
+      return t if self.send((t.to_s + "?").to_sym)
+    end
+    :high_card
+  end
+
+  def compare_duplicate_cards(type, other_hand)
+    self_rank = CardOrder.sort_index(summary[type].first.number)
+    other_rank = CardOrder.sort_index(other_hand.summary[type].first.number)
+    return if self_rank == other_rank
+    self_rank > other_rank ? self : other_hand
+  end
+
+  def compare_kickers(other_hand)
+    other_kickers = other_hand.kickers
+    kickers.each_with_index do |card, index|
+      other_card = other_kickers[index]
+      next if card.number == other_card.number
+      return CardOrder.sort_index(card.number) > CardOrder.sort_index(other_card.number) ? self : other_hand
+    end
+  end
+
+  def kickers
+    CardOrder.sort_best_to_worst(summary[:kickers])
+  end
+
+  def grouped_cards
+    card_numbers = cards.map(&:number)
+    cards.group_by { |c| card_numbers.count(c.number) }
+  end
+
+  def count_mapping
+    { 3 => :three_of_a_kind, 4 => :four_of_a_kind, 1 => :kickers }
+  end
+
+  def summary
+    result = {}
+    grouped_cards.each do |count, cards|
+      if count == 2
+        result.merge!(PairAnalyzer.summary(cards))
+      else
+        result[count_mapping[count]] = cards
+      end
+    end
+    result
   end
 
   def pair?
@@ -37,27 +86,19 @@ class FiveCardHand
     straight? && flush?
   end
 
-  def ranking
-    hand_rankings.keys.each do |hand_type|
-      return hand_rankings[hand_type] if self.send(hand_type)
-    end
-    hand_rankings[:high_card?]
-  end
-
   private
 
-  def hand_rankings
-    {
-      straight_flush?: 1,
-      four_of_a_kind?: 2,
-      full_house?: 3,
-      flush?: 4,
-      straight?: 5,
-      three_of_a_kind?: 6,
-      two_pair?: 7,
-      pair?: 8,
-      high_card?: 9
-    }
+  def types
+    [
+      :straight_flush,
+      :four_of_a_kind,
+      :full_house,
+      :flush,
+      :straight,
+      :three_of_a_kind,
+      :two_pair,
+      :pair
+    ]
   end
 
   def possible_straights
