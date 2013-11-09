@@ -1,4 +1,5 @@
 class FiveCardHand
+  include Pair
   attr_reader :cards
   def initialize(cards)
     @cards = cards
@@ -54,7 +55,7 @@ class FiveCardHand
       straight?: 5,
       three_of_a_kind?: 6,
       two_pair?: 7,
-      one_pair?: 8,
+      pair?: 8,
       high_card?: 9
     }
   end
