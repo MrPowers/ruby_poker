@@ -7,9 +7,10 @@ class Showdown
   end
 
   def winning_hand
-    comparison = hand_rankings.keys.index(hand1.type) <=> hand_rankings.keys.index(hand2.type)
-    return hand1 if comparison == -1
-    return hand2 if comparison == 1
+    hand1_ranking = hand_rankings.keys.index(hand1.type)
+    hand2_ranking = hand_rankings.keys.index(hand2.type)
+    return hand1 if hand1_ranking > hand2_ranking
+    return hand2 if hand2_ranking > hand1_ranking
     tiebreaker
   end
 

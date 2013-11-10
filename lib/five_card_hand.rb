@@ -1,6 +1,5 @@
 require "pry"
 class FiveCardHand
-  include Pair
   attr_reader :cards
   def initialize(cards)
     @cards = cards
@@ -29,19 +28,6 @@ class FiveCardHand
     end
   end
 
-  def kickers
-    CardOrder.sort_best_to_worst(summary[:kickers])
-  end
-
-  def grouped_cards
-    card_numbers = cards.map(&:number)
-    cards.group_by { |c| card_numbers.count(c.number) }
-  end
-
-  def count_mapping
-    { 3 => :three_of_a_kind, 4 => :four_of_a_kind, 1 => :kickers }
-  end
-
   def summary
     result = {}
     grouped_cards.each do |count, cards|
@@ -54,20 +40,34 @@ class FiveCardHand
     result
   end
 
+  def kickers
+    CardOrder.sort_best_to_worst(summary[:kickers])
+  end
+
+  private
+
+  def grouped_cards
+    cards.group_by { |c| card_numbers.count(c.number) }
+  end
+
+  def count_mapping
+    { 3 => :three_of_a_kind, 4 => :four_of_a_kind, 1 => :kickers }
+  end
+
   def pair?
-    unique_number_counts.values.any? { |count| count == 2 }
+    summary[:pair]
   end
 
   def two_pair?
-    unique_number_counts.values.count(2) == 2
+    summary[:top_pair] && summary[:bottom_pair]
   end
 
   def three_of_a_kind?
-    unique_number_counts.values.any? { |count| count == 3 }
+    summary[:three_of_a_kind]
   end
 
   def four_of_a_kind?
-    unique_number_counts.values.any? { |count| count == 4 }
+    summary[:four_of_a_kind]
   end
 
   def full_house?
@@ -85,8 +85,6 @@ class FiveCardHand
   def straight_flush?
     straight? && flush?
   end
-
-  private
 
   def types
     [
@@ -108,13 +106,6 @@ class FiveCardHand
 
   def card_numbers
     cards.map(&:number)
-  end
-
-  def unique_number_counts
-    card_numbers.uniq.inject({}) do |memo, number|
-      memo[number] = card_numbers.count(number)
-      memo
-    end
   end
 
 end
